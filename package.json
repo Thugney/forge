@@ -1,6 +1,6 @@
 {
   "name": "forge",
-  "version": "3.0.0-preview.0",
+  "version": "3.0.0-preview.1",
   "private": true,
   "description": "Claude Code plugin: compliance by design, quality gates and a guided build loop.",
   "type": "module",

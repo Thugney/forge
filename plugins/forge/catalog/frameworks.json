@@ -1,0 +1,33 @@
+{
+  "catalogVersion": "0.1.0",
+  "frameworks": [
+    {
+      "id": "gdpr",
+      "name": "GDPR (personvernforordningen)",
+      "version": "Forordning (EU) 2016/679",
+      "defaultOn": true,
+      "note": "Tallene i map er artikler, for eksempel 5(1)(c) eller 32. Koblingene er utkast og må leses mot lovteksten."
+    },
+    {
+      "id": "iso27001",
+      "name": "ISO/IEC 27001",
+      "version": "2022",
+      "defaultOn": true,
+      "note": "A.x.y er tiltak i vedlegg A. Tall uten A (6.1.2, 8.2) er punkter i hoveddelen. Standarden er betalt, så koblingene må kontrolleres av eieren eller en revisor."
+    },
+    {
+      "id": "soc2",
+      "name": "SOC 2 Trust Services Criteria",
+      "version": "TSC 2017 (fokuspunkter revidert 2022)",
+      "defaultOn": true,
+      "note": "CC = felles kriterier (sikkerhet). A = tilgjengelighet, C = konfidensialitet, PI = behandlingsintegritet, P = personvern. Koblingene er utkast."
+    },
+    {
+      "id": "hipaa",
+      "name": "HIPAA Security, Privacy og Breach Notification Rules",
+      "version": "45 CFR del 160 og 164",
+      "defaultOn": false,
+      "note": "Slås på bare når prosjektet behandler amerikanske helseopplysninger (PHI). Tallene er paragrafer i 45 CFR, for eksempel 164.312(a)(1). Kontrollene HX-01 til HX-03 gjelder bare når HIPAA er på."
+    }
+  ]
+}

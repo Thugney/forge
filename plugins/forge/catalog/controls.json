@@ -1,0 +1,2160 @@
+{
+  "catalogVersion": "0.1.0",
+  "mappingStatus": "draft",
+  "controls": [
+    {
+      "id": "SDL-01",
+      "title": "Krav til sikkerhet og personvern står i spec før bygging",
+      "kind": "technical",
+      "requirement": "Før en funksjon bygges, står kravene fra kontrollene i spec eller oppgave: hvilke data den bruker, hvem som får tilgang, hva som logges og hvilke leverandører som berøres. Eieren har godkjent omfanget før første kodeendring.",
+      "map": {
+        "soc2": [
+          "CC8.1"
+        ],
+        "iso27001": [
+          "A.5.8",
+          "A.8.25",
+          "A.8.26"
+        ],
+        "gdpr": [
+          "25"
+        ],
+        "hipaa": [
+          "164.308(a)(1)(ii)(B)"
+        ]
+      },
+      "triggers": [
+        "feature"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "spec-requirements"
+        }
+      ],
+      "evidence": [
+        "spec eller oppgave med avsnittet «Krav fra kontrollene»",
+        "eierens godkjenning av omfanget med dato"
+      ],
+      "askInSpec": [
+        "Hvilke kontroller gjelder for denne funksjonen, og hva betyr de konkret her?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "SDL-02",
+      "title": "Ingen hemmeligheter i kode eller git",
+      "kind": "technical",
+      "requirement": "Nøkler, passord og tokens ligger aldri i kildekode, konfigurasjon i git, testdata eller logger. De ligger i miljøvariabler eller et hemmelighetslager. En nøkkel som har vært i git, regnes som lekket og roteres.",
+      "map": {
+        "soc2": [
+          "CC6.1"
+        ],
+        "iso27001": [
+          "A.5.17",
+          "A.8.28"
+        ],
+        "gdpr": [
+          "32"
+        ],
+        "hipaa": [
+          "164.308(a)(5)(ii)(D)"
+        ]
+      },
+      "triggers": [
+        "always",
+        "infra"
+      ],
+      "checks": [
+        {
+          "type": "hook",
+          "id": "secrets",
+          "severity": "block"
+        },
+        {
+          "type": "ci",
+          "id": "gitleaks"
+        }
+      ],
+      "evidence": [
+        "CI-kjøring med gitleaks uten funn",
+        ".gitignore dekker .env*",
+        "rotasjonsnotat hvis en nøkkel har lekket"
+      ],
+      "askInSpec": [
+        "Trenger funksjonen en ny nøkkel? Hvor lagres den, og hvem roterer den?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "SDL-03",
+      "title": "Inndata valideres, og feilmeldinger lekker ikke detaljer",
+      "kind": "technical",
+      "requirement": "Alt som kommer utenfra, kontrolleres på serveren mot et skjema: type, lengde, format og lovlige verdier. Spørringer bygges med parametere, aldri ved å lime sammen tekst. Feilmeldinger til brukeren sier hva som gikk galt i klarspråk, uten stakkspor, SQL, interne ID-er eller filstier.",
+      "map": {
+        "soc2": [
+          "CC6.6",
+          "PI1.2"
+        ],
+        "iso27001": [
+          "A.8.26",
+          "A.8.28"
+        ],
+        "gdpr": [
+          "32"
+        ],
+        "hipaa": [
+          "164.312(c)(1)"
+        ]
+      },
+      "triggers": [
+        "api"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "input-validation"
+        }
+      ],
+      "evidence": [
+        "skjema eller validering for hvert nytt endepunkt",
+        "test som sender ugyldig inndata og får et kontrollert avslag",
+        "eksempel på feilsvar uten interne detaljer"
+      ],
+      "askInSpec": [
+        "Hvilke felt tar funksjonen imot, og hva er lovlige verdier? Hva ser brukeren når noe feiler?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "SDL-04",
+      "title": "Forsyningskjede: avhengigheter skannet og låst, SBOM, låste byggesteg",
+      "kind": "technical",
+      "requirement": "Avhengigheter er låst med en låsefil og skannes for kjente sårbarheter i CI. Nye pakker vurderes før de legges til: hvem vedlikeholder dem, lisens, og om de trengs. CI-handlinger er låst til full commit-SHA. Det lages en SBOM ved utgivelse.",
+      "map": {
+        "soc2": [
+          "CC7.1",
+          "CC9.2"
+        ],
+        "iso27001": [
+          "A.5.21",
+          "A.8.8"
+        ],
+        "gdpr": [
+          "32"
+        ]
+      },
+      "triggers": [
+        "deps",
+        "infra"
+      ],
+      "checks": [
+        {
+          "type": "ci",
+          "id": "dependency-scan"
+        },
+        {
+          "type": "ci",
+          "id": "sbom"
+        },
+        {
+          "type": "hook",
+          "id": "new-dependency",
+          "severity": "warn"
+        }
+      ],
+      "evidence": [
+        "låsefil i git",
+        "CI-kjøring med avhengighetsskanning",
+        "SBOM-fil fra siste utgivelse",
+        "alle uses: i workflows låst til SHA"
+      ],
+      "askInSpec": [
+        "Legger funksjonen til nye pakker? Hvorfor trengs de, og hvem vedlikeholder dem?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "SDL-05",
+      "title": "Sikkerhetstesting: SAST i CI og tester for tilgang og kundeskille",
+      "kind": "technical",
+      "requirement": "Statisk kodeanalyse (SAST) kjører i CI ved hver pull request. Tilgangsregler og kundeskille har egne tester som feiler hvis en bruker kan se eller endre data hos en annen kunde eller over sin egen rolle.",
+      "map": {
+        "soc2": [
+          "CC7.1",
+          "CC8.1"
+        ],
+        "iso27001": [
+          "A.8.28",
+          "A.8.29"
+        ],
+        "gdpr": [
+          "32(1)(d)"
+        ],
+        "hipaa": [
+          "164.308(a)(8)"
+        ]
+      },
+      "triggers": [
+        "auth",
+        "api",
+        "db-schema"
+      ],
+      "checks": [
+        {
+          "type": "ci",
+          "id": "sast"
+        },
+        {
+          "type": "agent",
+          "id": "access-tests"
+        }
+      ],
+      "evidence": [
+        "CI-kjøring med SAST",
+        "test for tilgang og kundeskille med kommando og resultat"
+      ],
+      "askInSpec": [
+        "Hvilke tester viser at en bruker ikke ser andres data i denne funksjonen?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "SDL-06",
+      "title": "Skilte miljøer, og bare syntetiske data i test og demo",
+      "kind": "technical",
+      "requirement": "Utvikling, test og produksjon er skilt: egne databaser, egne nøkler og egne kontoer hos leverandører. Test, demo, skjermbilder og delte referater bruker bare syntetiske data. Ekte personopplysninger kopieres ikke ut av produksjon.",
+      "map": {
+        "soc2": [
+          "CC8.1"
+        ],
+        "iso27001": [
+          "A.8.31",
+          "A.8.33"
+        ],
+        "gdpr": [
+          "5(1)(c)",
+          "25"
+        ],
+        "hipaa": [
+          "164.502(b)"
+        ]
+      },
+      "triggers": [
+        "infra",
+        "db-schema"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "env-separation"
+        }
+      ],
+      "evidence": [
+        "oversikt over miljøer og hvor nøklene ligger",
+        "testdata og fixtures er syntetiske"
+      ],
+      "askInSpec": [
+        "Hvilke testdata trengs? Er de syntetiske?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "AC-01",
+      "title": "Innlogging hos en kontrollert identitetstjeneste, token kontrolleres fullt",
+      "kind": "technical",
+      "requirement": "Mennesker logger inn hos en identitetstjeneste (OIDC eller tilsvarende), ikke med hjemmelaget passordlagring. API-et kontrollerer signatur, utsteder, målgruppe og utløp på hvert token før innholdet brukes. Hver bruker har en egen identitet. Felleskontoer brukes ikke.",
+      "map": {
+        "soc2": [
+          "CC6.1",
+          "CC6.2"
+        ],
+        "iso27001": [
+          "A.5.16",
+          "A.8.5"
+        ],
+        "gdpr": [
+          "32"
+        ],
+        "hipaa": [
+          "164.312(d)",
+          "164.312(a)(2)(i)"
+        ]
+      },
+      "triggers": [
+        "auth"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "token-validation"
+        }
+      ],
+      "evidence": [
+        "kodested der tokenet kontrolleres",
+        "test som avviser token med feil signatur, utsteder, målgruppe eller utløpt tid"
+      ],
+      "askInSpec": [
+        "Hvem logger inn, og hvor? Hvilke felt i tokenet brukes, og er de kontrollert?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "AC-02",
+      "title": "Tilgang avgjøres på serveren, etter minste privilegium",
+      "kind": "technical",
+      "requirement": "Serveren avgjør hva hver bruker får se og gjøre, ut fra rolle og medlemskap. Skjuling i brukerflaten regnes ikke som tilgangskontroll. Nye roller og rettigheter gir bare det oppgaven krever, og standard er nei.",
+      "map": {
+        "soc2": [
+          "CC6.1",
+          "CC6.3"
+        ],
+        "iso27001": [
+          "A.5.15",
+          "A.8.3"
+        ],
+        "gdpr": [
+          "25(2)",
+          "32"
+        ],
+        "hipaa": [
+          "164.312(a)(1)",
+          "164.308(a)(4)"
+        ]
+      },
+      "triggers": [
+        "auth",
+        "api",
+        "personal-data"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "server-authz"
+        }
+      ],
+      "evidence": [
+        "tilgangssjekk på hvert nytt endepunkt",
+        "test som viser avslag for feil rolle"
+      ],
+      "askInSpec": [
+        "Hvilke roller skal kunne bruke funksjonen? Hva skal de andre få som svar?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "AC-03",
+      "title": "Kundeskille i datalaget: hver ny tabell får radbasert tilgangskontroll",
+      "kind": "technical",
+      "requirement": "Databasen selv holder kundene fra hverandre, også når koden glemmer å filtrere. Hver ny tabell med kundedata får RLS slått på og minst én regel i samme migrasjon. Appen kobler seg til med en rolle som ikke kan gå utenom reglene.",
+      "map": {
+        "soc2": [
+          "CC6.1",
+          "C1.1"
+        ],
+        "iso27001": [
+          "A.8.3"
+        ],
+        "gdpr": [
+          "25",
+          "32"
+        ],
+        "hipaa": [
+          "164.312(a)(1)"
+        ]
+      },
+      "triggers": [
+        "db-schema"
+      ],
+      "appliesWhen": {
+        "profile": "datastore.rls.required"
+      },
+      "checks": [
+        {
+          "type": "hook",
+          "id": "rls",
+          "severity": "block"
+        },
+        {
+          "type": "ci",
+          "id": "rls-test",
+          "note": "prosjektets egen test som feiler når en tabell mangler regel"
+        }
+      ],
+      "evidence": [
+        "migrasjonsfilen",
+        "bestått RLS-test med kommando og resultat"
+      ],
+      "askInSpec": [
+        "Hvilke nye tabeller? Hvem skal kunne se radene: bedriften, plattformen, ingen?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "AC-04",
+      "title": "Serveren velger kunde og eier, aldri et felt fra klienten",
+      "kind": "technical",
+      "requirement": "Hvilken kunde, bedrift eller eier en forespørsel gjelder, avgjøres av serveren ut fra innlogget bruker, kanalnøkkel eller innkommende nummer. Et felt som klienten sender, brukes aldri alene. Oppgir en bruker med flere kunder hvilken, godtar serveren bare kunder brukeren er medlem av.",
+      "map": {
+        "soc2": [
+          "CC6.1"
+        ],
+        "iso27001": [
+          "A.8.3",
+          "A.8.26"
+        ],
+        "gdpr": [
+          "32"
+        ],
+        "hipaa": [
+          "164.312(a)(1)"
+        ]
+      },
+      "triggers": [
+        "api",
+        "ui",
+        "db-schema"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "tenant-from-server"
+        }
+      ],
+      "evidence": [
+        "kodested der kunden velges",
+        "test som sender en annen kundes ID og får avslag"
+      ],
+      "askInSpec": [
+        "Hvordan vet serveren hvilken kunde forespørselen gjelder?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "AC-05",
+      "title": "Privilegert tilgang og støttetilgang er begrenset, tidsavgrenset og logget",
+      "kind": "technical",
+      "requirement": "Administrator- og støttetilgang til kundedata gis bare til navngitte personer, for en avgrenset tid og med en begrunnelse. Hver bruk logges i revisjonsloggen. Eierrollen i databasen brukes bare til migrasjoner og oppsett, ikke av appen.",
+      "map": {
+        "soc2": [
+          "CC6.2",
+          "CC6.3"
+        ],
+        "iso27001": [
+          "A.8.2",
+          "A.5.18"
+        ],
+        "gdpr": [
+          "32"
+        ],
+        "hipaa": [
+          "164.308(a)(3)",
+          "164.308(a)(4)"
+        ]
+      },
+      "triggers": [
+        "auth",
+        "db-schema"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "privileged-access"
+        },
+        {
+          "type": "owner",
+          "id": "privileged-review",
+          "remindEvery": "P3M"
+        }
+      ],
+      "evidence": [
+        "liste over hvem som har privilegert tilgang",
+        "logg over støttetilgang med tidsrom og begrunnelse"
+      ],
+      "askInSpec": [
+        "Trenger noen utenfor kunden tilgang til disse dataene? Hvor lenge, og hvordan logges det?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "AC-06",
+      "title": "Nøkler, økter og tokens har utløp og rotasjon, og lagres som hash",
+      "kind": "technical",
+      "requirement": "Økter og tokens utløper. Inaktive økter logges ut. API-nøkler og kanalnøkler som serveren må kjenne igjen, lagres som hash, ikke i klartekst. Det finnes en måte å trekke tilbake og rotere hver nøkkel på.",
+      "map": {
+        "soc2": [
+          "CC6.1"
+        ],
+        "iso27001": [
+          "A.5.17",
+          "A.8.5",
+          "A.8.24"
+        ],
+        "gdpr": [
+          "32"
+        ],
+        "hipaa": [
+          "164.312(a)(2)(iii)",
+          "164.312(d)"
+        ]
+      },
+      "triggers": [
+        "auth",
+        "api"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "token-lifetime"
+        }
+      ],
+      "evidence": [
+        "innstilling for øktlengde og utløp",
+        "migrasjon eller kode som lagrer nøkler som hash",
+        "rutine for rotasjon"
+      ],
+      "askInSpec": [
+        "Hvor lenge varer en økt eller nøkkel? Hvordan trekkes den tilbake?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "DP-01",
+      "title": "Datakart og protokoll over behandlinger er oppdatert",
+      "kind": "organisational",
+      "requirement": "Datakartet viser hver behandling: formål, hvem det gjelder, hvilke felt, hvor de lagres, hvem som mottar dem, overføringer og lagringstid. Det er grunnlaget for protokollen etter GDPR art. 30. Det oppdateres i samme steg som en ny datatype, tabell eller mottaker legges til.",
+      "map": {
+        "soc2": [
+          "C1.1"
+        ],
+        "iso27001": [
+          "A.5.9",
+          "A.5.12",
+          "A.5.34"
+        ],
+        "gdpr": [
+          "30"
+        ],
+        "hipaa": [
+          "164.308(a)(1)(ii)(A)"
+        ]
+      },
+      "triggers": [
+        "personal-data",
+        "db-schema",
+        "third-party"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "data-map-current"
+        },
+        {
+          "type": "hook",
+          "id": "data-map-drift",
+          "severity": "warn",
+          "note": "ny tabell eller kolonne uten endring i datakartet"
+        }
+      ],
+      "evidence": [
+        "compliance/data-map.json eller dokumentet profilen peker på, endret i samme steg"
+      ],
+      "askInSpec": [
+        "Hvilke nye opplysninger lagres, og hvor? Står de i datakartet?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "DP-02",
+      "title": "Kryptering under transport",
+      "kind": "technical",
+      "requirement": "All trafikk utenfor egen maskin går over TLS: nettleser, API, database, kø og leverandører. HTTP sendes videre til HTTPS, og HSTS er slått på for nettsider. Gamle protokoller og svake chiffer er slått av.",
+      "map": {
+        "soc2": [
+          "CC6.7"
+        ],
+        "iso27001": [
+          "A.5.14",
+          "A.8.24"
+        ],
+        "gdpr": [
+          "32(1)(a)"
+        ],
+        "hipaa": [
+          "164.312(e)(1)"
+        ]
+      },
+      "triggers": [
+        "api",
+        "infra",
+        "third-party"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "tls-everywhere"
+        }
+      ],
+      "evidence": [
+        "konfigurasjon for TLS og HSTS",
+        "tilkoblingsstrenger som krever TLS"
+      ],
+      "askInSpec": [
+        "Sendes data til en ny tjeneste? Går forbindelsen over TLS?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "DP-03",
+      "title": "Kryptering ved lagring, og styring av nøkler",
+      "kind": "technical",
+      "requirement": "Databaser, filer og sikkerhetskopier med personopplysninger er kryptert ved lagring. Det er skrevet ned hvem som har nøklene, hvor de ligger og hvordan de roteres. Særlig sensitive felt vurderes kryptert på feltnivå.",
+      "map": {
+        "soc2": [
+          "CC6.1"
+        ],
+        "iso27001": [
+          "A.8.24"
+        ],
+        "gdpr": [
+          "32(1)(a)"
+        ],
+        "hipaa": [
+          "164.312(a)(2)(iv)"
+        ]
+      },
+      "triggers": [
+        "db-schema",
+        "infra"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "encryption-at-rest"
+        },
+        {
+          "type": "owner",
+          "id": "key-management"
+        }
+      ],
+      "evidence": [
+        "innstilling eller dokumentasjon fra driftsleverandøren om kryptering ved lagring",
+        "notat om nøkkelstyring"
+      ],
+      "askInSpec": [
+        "Lagres det noe nytt utenfor databasen, for eksempel filer? Er det kryptert?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "DP-04",
+      "title": "Dataminimering og personvern som standard",
+      "kind": "technical",
+      "requirement": "Funksjonen samler bare inn de opplysningene formålet krever. Valgfrie felt er valgfrie. Standardinnstillingen er den som deler minst. Opplysninger som ikke trengs i et svar, sendes ikke til klienten.",
+      "map": {
+        "soc2": [
+          "P3.1"
+        ],
+        "iso27001": [
+          "A.5.34",
+          "A.8.11"
+        ],
+        "gdpr": [
+          "5(1)(c)",
+          "25"
+        ],
+        "hipaa": [
+          "164.502(b)"
+        ]
+      },
+      "triggers": [
+        "personal-data",
+        "ui",
+        "api"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "minimisation"
+        }
+      ],
+      "evidence": [
+        "liste over nye felt med begrunnelse",
+        "API-svar som bare inneholder det klienten trenger"
+      ],
+      "askInSpec": [
+        "Trengs hvert felt? Hva skjer hvis vi lar det være?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "DP-05",
+      "title": "Lagringstid og automatisk sletting for hver datatype",
+      "kind": "technical",
+      "requirement": "Hver datatype med personopplysninger har en lagringstid, og en jobb sletter eller anonymiserer automatisk når tiden er ute. Lagringstiden står i datakartet. Kopier i køer, mellomlagre og logger følger samme frist.",
+      "map": {
+        "soc2": [
+          "C1.2",
+          "P4.2",
+          "P4.3"
+        ],
+        "iso27001": [
+          "A.8.10",
+          "A.5.33"
+        ],
+        "gdpr": [
+          "5(1)(e)",
+          "17"
+        ],
+        "hipaa": [
+          "164.310(d)(2)(i)"
+        ]
+      },
+      "triggers": [
+        "db-schema",
+        "logging"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "retention"
+        },
+        {
+          "type": "hook",
+          "id": "retention-missing",
+          "severity": "warn",
+          "note": "ny tabell med personfelt uten lagringstid i datakartet"
+        }
+      ],
+      "evidence": [
+        "lagringstid i datakartet",
+        "slettejobb eller migrasjon",
+        "test som viser at gamle rader slettes"
+      ],
+      "askInSpec": [
+        "Hvor lenge skal opplysningen lagres? Hva sletter den?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "DP-06",
+      "title": "Ingen personopplysninger eller hemmeligheter i logger, feilmeldinger og analyse",
+      "kind": "technical",
+      "requirement": "Logger, feilmeldinger, sporingsverktøy og analyse inneholder ikke navn, telefonnummer, e-post, fritekst fra brukere, tokens eller helseopplysninger. Logg en intern ID i stedet. Trengs innholdet til feilsøking, maskeres det og får egen lagringstid.",
+      "map": {
+        "soc2": [
+          "C1.1"
+        ],
+        "iso27001": [
+          "A.8.11",
+          "A.8.12",
+          "A.8.15"
+        ],
+        "gdpr": [
+          "5(1)(c)",
+          "5(1)(f)",
+          "32"
+        ],
+        "hipaa": [
+          "164.502(b)"
+        ]
+      },
+      "triggers": [
+        "logging",
+        "personal-data",
+        "api",
+        "ai"
+      ],
+      "checks": [
+        {
+          "type": "hook",
+          "id": "pii-logs",
+          "severity": "warn",
+          "note": "feltnavn hentes fra datakartet"
+        },
+        {
+          "type": "agent",
+          "id": "log-review"
+        }
+      ],
+      "evidence": [
+        "liste over nye loggkall og hva de skriver",
+        "test som viser maskert utdata der det finnes"
+      ],
+      "askInSpec": [
+        "Hva logges i denne funksjonen? Hvilke felt er utelatt eller maskert?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "BK-01",
+      "title": "Sikkerhetskopi er kryptert, gjenoppretting er testet, og mål er satt",
+      "kind": "technical",
+      "requirement": "Databasen og andre viktige data tas sikkerhetskopi av automatisk. Kopiene er kryptert og ligger et annet sted enn produksjonen. Det er satt mål for hvor mye data som kan gå tapt og hvor raskt tjenesten skal være oppe igjen. Gjenoppretting prøves minst én gang i året, og resultatet skrives ned.",
+      "map": {
+        "soc2": [
+          "A1.2",
+          "A1.3",
+          "CC7.5"
+        ],
+        "iso27001": [
+          "A.8.13",
+          "A.5.30"
+        ],
+        "gdpr": [
+          "32(1)(c)",
+          "32(1)(d)"
+        ],
+        "hipaa": [
+          "164.308(a)(7)"
+        ]
+      },
+      "triggers": [
+        "infra",
+        "db-schema"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "backup-config"
+        },
+        {
+          "type": "owner",
+          "id": "restore-test",
+          "remindEvery": "P12M"
+        }
+      ],
+      "evidence": [
+        "oppsett for sikkerhetskopi",
+        "notat fra siste gjenopprettingstest med dato og tidsbruk",
+        "mål for datatap og nedetid"
+      ],
+      "askInSpec": [
+        "Kommer det nye data som må med i sikkerhetskopien?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "PR-01",
+      "title": "Formål og behandlingsgrunnlag for hver behandling",
+      "kind": "organisational",
+      "requirement": "Hver behandling av personopplysninger har et skrevet formål og et behandlingsgrunnlag (avtale, rettslig plikt, berettiget interesse, samtykke). Særlige kategorier, som helse, har i tillegg et unntak etter GDPR art. 9. Opplysningene brukes ikke til noe annet enn formålet.",
+      "map": {
+        "soc2": [
+          "P3.1",
+          "P4.1"
+        ],
+        "iso27001": [
+          "A.5.31",
+          "A.5.34"
+        ],
+        "gdpr": [
+          "5",
+          "6",
+          "9"
+        ]
+      },
+      "triggers": [
+        "db-schema",
+        "third-party"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "lawful-basis"
+        },
+        {
+          "type": "owner",
+          "id": "lawful-basis-approval"
+        }
+      ],
+      "evidence": [
+        "formål og grunnlag per behandling i datakartet"
+      ],
+      "askInSpec": [
+        "Hva er formålet med opplysningene, og hva er grunnlaget? Gjelder det helse eller andre særlige kategorier?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "PR-02",
+      "title": "Personvernerklæringen stemmer med det koden gjør",
+      "kind": "organisational",
+      "requirement": "Personvernerklæringen nevner alle opplysninger som samles inn, formålene, mottakerne og leverandørene, overføringer ut av EØS, lagringstider og rettighetene. Når koden begynner å samle inn noe nytt eller dele med en ny mottaker, oppdateres erklæringen i samme steg.",
+      "map": {
+        "soc2": [
+          "P1.1"
+        ],
+        "iso27001": [
+          "A.5.34"
+        ],
+        "gdpr": [
+          "12",
+          "13",
+          "14"
+        ],
+        "hipaa": [
+          "164.520"
+        ]
+      },
+      "triggers": [
+        "third-party"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "privacy-notice-drift"
+        }
+      ],
+      "evidence": [
+        "personvernerklæringen med dato",
+        "sammenligning mellom datakartet og erklæringen"
+      ],
+      "askInSpec": [
+        "Må personvernerklæringen endres fordi funksjonen samler inn eller deler noe nytt?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "PR-03",
+      "title": "Samtykke: innhenting, bevis og tilbaketrekking",
+      "kind": "technical",
+      "requirement": "Der behandlingen bygger på samtykke, er samtykket aktivt, frivillig og spesifikt. Det lagres hva brukeren sa ja til, når og hvilken tekst som ble vist. Det er like lett å trekke samtykket tilbake som å gi det, og behandlingen stopper når det trekkes.",
+      "map": {
+        "soc2": [
+          "P2.1"
+        ],
+        "iso27001": [
+          "A.5.34"
+        ],
+        "gdpr": [
+          "7"
+        ],
+        "hipaa": [
+          "164.508"
+        ]
+      },
+      "triggers": [
+        "third-party"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "consent-flow"
+        }
+      ],
+      "evidence": [
+        "tabell eller logg som lagrer samtykke med tid og tekstversjon",
+        "test som trekker samtykket og viser at behandlingen stopper"
+      ],
+      "askInSpec": [
+        "Bygger noe her på samtykke? Hvordan lagres det, og hvordan trekkes det tilbake?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "PR-04",
+      "title": "Innsyn og dataportabilitet kan oppfylles",
+      "kind": "technical",
+      "requirement": "For hver ny datatype om en person finnes det en vei til å hente ut alt om én person i et lesbart og maskinlesbart format, uten håndarbeid i databasen. Hver forespørsel logges med dato og utfall.",
+      "map": {
+        "soc2": [
+          "P5.1"
+        ],
+        "iso27001": [
+          "A.5.34"
+        ],
+        "gdpr": [
+          "15",
+          "20"
+        ],
+        "hipaa": [
+          "164.524"
+        ]
+      },
+      "triggers": [
+        "db-schema"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "access-export"
+        }
+      ],
+      "evidence": [
+        "eksport for én person som dekker tabellene i datakartet",
+        "test av eksporten"
+      ],
+      "askInSpec": [
+        "Kommer den nye opplysningen med når en person ber om innsyn?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "PR-05",
+      "title": "Retting, sletting, begrensning og innsigelse kan oppfylles",
+      "kind": "technical",
+      "requirement": "For hver ny datatype om en person finnes det en vei til å rette og slette den for én person, uten håndarbeid i databasen. Sletting dekker også kopier: køer, mellomlagre, søkeindekser, leverandører og sikkerhetskopier (ved utløp). Hver forespørsel logges med dato og utfall.",
+      "map": {
+        "soc2": [
+          "P5.2",
+          "P4.3"
+        ],
+        "iso27001": [
+          "A.5.34",
+          "A.8.10"
+        ],
+        "gdpr": [
+          "16",
+          "17",
+          "18",
+          "19",
+          "21"
+        ],
+        "hipaa": [
+          "164.526"
+        ]
+      },
+      "triggers": [
+        "personal-data",
+        "db-schema",
+        "third-party"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "rights-path"
+        }
+      ],
+      "evidence": [
+        "test som sletter én person og viser at radene er borte i alle tabeller fra datakartet",
+        "rutine for forespørsler med frist på én måned"
+      ],
+      "askInSpec": [
+        "Hvor lagres den nye opplysningen, også kopier? Hvordan slettes den for én person?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "PR-06",
+      "title": "Vurdering av personvernkonsekvenser (DPIA) ved høy risiko",
+      "kind": "organisational",
+      "requirement": "Før en behandling som trolig gir høy risiko settes i gang, gjøres en DPIA. Eksempler: helseopplysninger i stor skala, systematisk overvåking, profilering eller ny teknologi som AI på personopplysninger. DPIA-en sier hva risikoen er og hvilke tiltak som reduserer den. Er restrisikoen høy, spørres Datatilsynet først.",
+      "map": {
+        "soc2": [
+          "CC3.2"
+        ],
+        "iso27001": [
+          "A.5.34"
+        ],
+        "gdpr": [
+          "35",
+          "36"
+        ],
+        "hipaa": [
+          "164.308(a)(1)(ii)(A)"
+        ]
+      },
+      "triggers": [
+        "personal-data",
+        "ai"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "dpia-needed"
+        },
+        {
+          "type": "owner",
+          "id": "dpia"
+        }
+      ],
+      "evidence": [
+        "vurdering av om DPIA trengs, med begrunnelse",
+        "DPIA-dokument med dato når den trengs"
+      ],
+      "askInSpec": [
+        "Gjelder funksjonen helse, barn, overvåking, profilering eller AI på personopplysninger? Trengs en DPIA?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "VN-01",
+      "title": "Register over leverandører og underdatabehandlere",
+      "kind": "organisational",
+      "requirement": "Det finnes en liste over alle leverandører som behandler data for prosjektet: hva de gjør, hvilke data de får, hvor de holder til og om det finnes avtale. Listen oppdateres i samme steg som en ny leverandør tas i bruk.",
+      "map": {
+        "soc2": [
+          "CC9.2",
+          "P6.4"
+        ],
+        "iso27001": [
+          "A.5.19",
+          "A.5.21"
+        ],
+        "gdpr": [
+          "28",
+          "30"
+        ],
+        "hipaa": [
+          "164.308(b)(1)"
+        ]
+      },
+      "triggers": [
+        "third-party",
+        "ai"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "vendor-register"
+        },
+        {
+          "type": "owner",
+          "id": "vendor-review",
+          "remindEvery": "P12M"
+        }
+      ],
+      "evidence": [
+        "leverandørregisteret med dato"
+      ],
+      "askInSpec": [
+        "Tar funksjonen i bruk en ny leverandør? Står den i registeret?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "VN-02",
+      "title": "Databehandleravtale før data deles",
+      "kind": "organisational",
+      "requirement": "Det er inngått databehandleravtale med hver leverandør som behandler personopplysninger på vegne av prosjektet, før de første ekte dataene sendes. Avtalen dekker det GDPR art. 28(3) krever, også bruk av underleverandører.",
+      "map": {
+        "soc2": [
+          "CC9.2",
+          "P6.4"
+        ],
+        "iso27001": [
+          "A.5.20"
+        ],
+        "gdpr": [
+          "28(3)"
+        ],
+        "hipaa": [
+          "164.308(b)(1)",
+          "164.314(a)"
+        ]
+      },
+      "triggers": [
+        "third-party",
+        "ai"
+      ],
+      "checks": [
+        {
+          "type": "owner",
+          "id": "dpa-signed"
+        }
+      ],
+      "evidence": [
+        "peker til signert avtale eller leverandørens standardavtale med dato"
+      ],
+      "askInSpec": [
+        "Finnes det databehandleravtale med leverandøren før ekte data sendes?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "VN-03",
+      "title": "Overføring ut av EØS har grunnlag og vurdering",
+      "kind": "organisational",
+      "requirement": "Sendes personopplysninger til et land utenfor EØS, er grunnlaget skrevet ned: beslutning om tilstrekkelig beskyttelse, standardavtale (SCC) eller annet. Ved standardavtale finnes en vurdering av overføringen. Leverandører med drift i flere land sjekkes for hvor dataene faktisk behandles.",
+      "map": {
+        "soc2": [
+          "CC9.2"
+        ],
+        "iso27001": [
+          "A.5.14",
+          "A.5.31"
+        ],
+        "gdpr": [
+          "44",
+          "45",
+          "46",
+          "47",
+          "48",
+          "49"
+        ]
+      },
+      "triggers": [
+        "third-party",
+        "ai",
+        "infra"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "transfer-basis"
+        },
+        {
+          "type": "owner",
+          "id": "transfer-assessment"
+        }
+      ],
+      "evidence": [
+        "overføringer med grunnlag i datakartet",
+        "vurdering av overføringen der standardavtale brukes"
+      ],
+      "askInSpec": [
+        "Hvor behandler leverandøren dataene? Er det utenfor EØS, og hva er grunnlaget?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "VN-04",
+      "title": "Ny tredjepart (SDK, skript, API) vurderes før den tas i bruk",
+      "kind": "organisational",
+      "requirement": "Før en ny SDK, et eksternt skript eller et eksternt API tas i bruk, vurderes det: hvilke data den får, om den setter informasjonskapsler eller sporer, hvor den behandler data, og om det trengs avtale eller samtykke. Vurderingen er kort og står i steget.",
+      "map": {
+        "soc2": [
+          "CC9.2",
+          "CC3.4"
+        ],
+        "iso27001": [
+          "A.5.19",
+          "A.5.22",
+          "A.5.23"
+        ],
+        "gdpr": [
+          "25",
+          "28(1)"
+        ],
+        "hipaa": [
+          "164.308(b)(1)"
+        ]
+      },
+      "triggers": [
+        "third-party",
+        "ai",
+        "deps"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "vendor-assessment"
+        },
+        {
+          "type": "hook",
+          "id": "new-third-party",
+          "severity": "warn",
+          "note": "ny pakke eller nytt eksternt domene i koden"
+        }
+      ],
+      "evidence": [
+        "kort vurdering i spec eller oppgave",
+        "oppføring i leverandørregisteret (VN-01)"
+      ],
+      "askInSpec": [
+        "Hvilke data får den nye tjenesten? Sporer den brukerne? Trengs avtale eller samtykke?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "LG-01",
+      "title": "Revisjonslogg: hvem, hva, når. Kan ikke endres, og har lagringstid",
+      "kind": "technical",
+      "requirement": "Viktige hendelser skrives i en revisjonslogg: innlogging, endring av tilganger, innsyn og endring i personopplysninger, sletting og støttetilgang. Hver rad sier hvem, hva, når og hvilken kunde. Appen kan ikke endre eller slette rader. Loggen har en lagringstid.",
+      "map": {
+        "soc2": [
+          "CC7.2"
+        ],
+        "iso27001": [
+          "A.8.15",
+          "A.5.33"
+        ],
+        "gdpr": [
+          "5(2)",
+          "32"
+        ],
+        "hipaa": [
+          "164.312(b)",
+          "164.312(c)(1)"
+        ]
+      },
+      "triggers": [
+        "logging",
+        "auth",
+        "personal-data"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "audit-log"
+        }
+      ],
+      "evidence": [
+        "migrasjon for revisjonsloggen med regel mot endring",
+        "test som viser at hendelsen logges"
+      ],
+      "askInSpec": [
+        "Hvilke handlinger i funksjonen skal stå i revisjonsloggen?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "LG-02",
+      "title": "Overvåking og varsling på feil og mistenkelig aktivitet",
+      "kind": "technical",
+      "requirement": "Tjenesten overvåkes: oppetid, feilrate og tegn på misbruk, som mange mislykkede innlogginger. Noen får varsel når en grense passeres, og varselet går til en person som kan handle. Loggene gjennomgås jevnlig.",
+      "map": {
+        "soc2": [
+          "CC7.2",
+          "CC7.3"
+        ],
+        "iso27001": [
+          "A.8.16"
+        ],
+        "gdpr": [
+          "32"
+        ],
+        "hipaa": [
+          "164.308(a)(1)(ii)(D)"
+        ]
+      },
+      "triggers": [
+        "infra",
+        "logging"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "monitoring"
+        },
+        {
+          "type": "owner",
+          "id": "alert-recipient"
+        }
+      ],
+      "evidence": [
+        "oppsett for overvåking og varsler",
+        "hvem som får varslene"
+      ],
+      "askInSpec": [
+        "Hva skal gi varsel hvis funksjonen feiler eller misbrukes?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "IR-01",
+      "title": "Hendelsesrutine: oppdage, vurdere, håndtere, lære",
+      "kind": "organisational",
+      "requirement": "Det finnes en kort, skrevet rutine for sikkerhetshendelser: hvem som tar imot, hvordan det vurderes, hvordan det stoppes og rettes, og hva som skrives ned etterpå. Kontaktinformasjon er oppdatert. Rutinen øves minst én gang i året.",
+      "map": {
+        "soc2": [
+          "CC7.3",
+          "CC7.4",
+          "CC7.5"
+        ],
+        "iso27001": [
+          "A.5.24",
+          "A.5.25",
+          "A.5.26",
+          "A.5.27"
+        ],
+        "gdpr": [
+          "32",
+          "33(5)"
+        ],
+        "hipaa": [
+          "164.308(a)(6)"
+        ]
+      },
+      "triggers": [
+        "periodic",
+        "infra",
+        "logging"
+      ],
+      "checks": [
+        {
+          "type": "owner",
+          "id": "incident-routine",
+          "remindEvery": "P12M"
+        }
+      ],
+      "evidence": [
+        "rutinedokument med dato",
+        "notat fra én øvelse eller ekte hendelse i året"
+      ],
+      "askInSpec": [],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "IR-02",
+      "title": "Brudd på personopplysningssikkerheten: varsling innen 72 timer og avviksregister",
+      "kind": "organisational",
+      "requirement": "Du har en skrevet rutine som sier hvem som vurderer et brudd, hvordan Datatilsynet varsles innen 72 timer, når de berørte varsles, og hvordan kunder varsles når du er databehandler. Alle avvik føres i et register, også de som ikke meldes.",
+      "map": {
+        "soc2": [
+          "CC7.4",
+          "P6.3",
+          "P6.6"
+        ],
+        "iso27001": [
+          "A.5.26",
+          "A.6.8"
+        ],
+        "gdpr": [
+          "33",
+          "34"
+        ],
+        "hipaa": [
+          "164.404",
+          "164.408",
+          "164.410"
+        ]
+      },
+      "triggers": [
+        "periodic",
+        "logging"
+      ],
+      "checks": [
+        {
+          "type": "owner",
+          "id": "breach-routine",
+          "remindEvery": "P12M"
+        }
+      ],
+      "evidence": [
+        "rutinedokument med dato",
+        "avviksregister (kan være tomt, men må finnes)",
+        "notat fra én øvelse i året"
+      ],
+      "askInSpec": [],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "IR-03",
+      "title": "Mottak av sårbarheter, og frister for retting",
+      "kind": "organisational",
+      "requirement": "Det står hvordan andre melder en sårbarhet (for eksempel i SECURITY.md), og hvem som svarer. Kjente sårbarheter rettes innen faste frister etter alvorlighet, for eksempel kritisk innen 7 dager og høy innen 30. Unntak skrives ned med begrunnelse.",
+      "map": {
+        "soc2": [
+          "CC7.1",
+          "CC2.3"
+        ],
+        "iso27001": [
+          "A.8.8"
+        ],
+        "gdpr": [
+          "32"
+        ],
+        "hipaa": [
+          "164.308(a)(1)(ii)(B)"
+        ]
+      },
+      "triggers": [
+        "periodic",
+        "deps"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "security-md"
+        },
+        {
+          "type": "owner",
+          "id": "vuln-deadlines",
+          "remindEvery": "P3M"
+        }
+      ],
+      "evidence": [
+        "SECURITY.md med kontaktvei",
+        "frister for retting",
+        "liste over åpne sårbarheter med dato"
+      ],
+      "askInSpec": [],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "CM-01",
+      "title": "Endringer kan spores: krav → commit → test → godkjenning",
+      "kind": "technical",
+      "requirement": "Hver endring kan følges fra oppgaven eller kravet, til commit, til test og til hvem som godkjente. Commit-meldinger og pull requests peker på oppgaven. Endringer gjøres ikke rett i produksjon.",
+      "map": {
+        "soc2": [
+          "CC8.1"
+        ],
+        "iso27001": [
+          "A.8.32"
+        ],
+        "gdpr": [
+          "5(2)"
+        ]
+      },
+      "triggers": [
+        "feature"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "traceability"
+        },
+        {
+          "type": "hook",
+          "id": "commit-task-ref",
+          "severity": "warn"
+        }
+      ],
+      "evidence": [
+        "pull request eller commit som peker på oppgaven",
+        "testkjøring knyttet til endringen",
+        "godkjenning med navn og dato"
+      ],
+      "askInSpec": [
+        "Hvilken oppgave hører endringen til?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "CM-02",
+      "title": "Beskyttet hovedgren, pull request og påkrevde CI-sjekker",
+      "kind": "technical",
+      "requirement": "Hovedgrenen tar bare imot endringer gjennom pull request der påkrevde CI-sjekker har bestått. Ingen pusher rett til hovedgrenen eller tvinger historikk over den. Der GitHub-planen ikke gir grenbeskyttelse, håndheves regelen lokalt og i CI, og det står som delvis møtt.",
+      "map": {
+        "soc2": [
+          "CC8.1"
+        ],
+        "iso27001": [
+          "A.8.4",
+          "A.8.32"
+        ],
+        "gdpr": [
+          "32"
+        ]
+      },
+      "triggers": [
+        "infra"
+      ],
+      "checks": [
+        {
+          "type": "hook",
+          "id": "git-guard",
+          "severity": "block"
+        },
+        {
+          "type": "ci",
+          "id": "gate"
+        },
+        {
+          "type": "owner",
+          "id": "branch-protection"
+        }
+      ],
+      "evidence": [
+        "regelsett eller grenbeskyttelse på GitHub, eller notat om at planen ikke gir det",
+        "CI-jobben gate er påkrevd"
+      ],
+      "askInSpec": [],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "CM-03",
+      "title": "Bevis per funksjon i bevisloggen",
+      "kind": "technical",
+      "requirement": "Hver ferdig funksjon har en bevisfil som sier hvilke kontroller den berører, hva som ble gjort, kommandoen som ble kjørt, det faktiske resultatet og kilden til beviset. Det som ikke ble prøvd, står i en egen seksjon.",
+      "map": {
+        "soc2": [
+          "CC4.1",
+          "CC8.1"
+        ],
+        "iso27001": [
+          "A.5.36"
+        ],
+        "gdpr": [
+          "5(2)",
+          "24"
+        ],
+        "hipaa": [
+          "164.316(b)(1)"
+        ]
+      },
+      "triggers": [
+        "feature"
+      ],
+      "checks": [
+        {
+          "type": "hook",
+          "id": "evidence-missing",
+          "severity": "warn"
+        },
+        {
+          "type": "agent",
+          "id": "evidence-file"
+        }
+      ],
+      "evidence": [
+        "compliance/evidence/<dato>-<navn>.md for funksjonen"
+      ],
+      "askInSpec": [
+        "Hvilke kommandoer viser at kravene over er møtt?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "CM-04",
+      "title": "Utrulling og tilbakerulling er dokumentert og kan gjentas",
+      "kind": "technical",
+      "requirement": "Utrulling gjøres med skrevne kommandoer eller en rørledning, ikke med håndarbeid som bare én person kan. Det står hvordan en utrulling rulles tilbake, også når den har en databasemigrasjon. Konfigurasjonen for produksjon ligger i git, uten hemmeligheter.",
+      "map": {
+        "soc2": [
+          "CC8.1"
+        ],
+        "iso27001": [
+          "A.5.37",
+          "A.8.9"
+        ],
+        "gdpr": [
+          "32"
+        ]
+      },
+      "triggers": [
+        "infra",
+        "db-schema"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "deploy-runbook"
+        }
+      ],
+      "evidence": [
+        "dokument eller skript for utrulling og tilbakerulling",
+        "notat fra siste utrulling"
+      ],
+      "askInSpec": [
+        "Kan endringen rulles tilbake? Hva skjer med migrasjonen da?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "AI-01",
+      "title": "AI-leverandøren er registrert som databehandler, uten trening på kundedata",
+      "kind": "organisational",
+      "requirement": "Leverandøren av språkmodellen står i leverandørregisteret og har databehandleravtale. Det er bekreftet at kundedata ikke brukes til å trene modellene, og hvor lenge leverandøren lagrer prompter og svar. Overføring ut av EØS følger VN-03.",
+      "map": {
+        "soc2": [
+          "CC9.2"
+        ],
+        "iso27001": [
+          "A.5.19",
+          "A.5.23"
+        ],
+        "gdpr": [
+          "28",
+          "44",
+          "45",
+          "46"
+        ],
+        "hipaa": [
+          "164.308(b)(1)"
+        ]
+      },
+      "triggers": [
+        "ai",
+        "third-party"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "ai-vendor"
+        },
+        {
+          "type": "owner",
+          "id": "ai-vendor-terms"
+        }
+      ],
+      "evidence": [
+        "oppføring i leverandørregisteret",
+        "peker til avtalen eller vilkårene om trening og lagring"
+      ],
+      "askInSpec": [
+        "Hvilken AI-leverandør brukes? Trener den på dataene, og hvor lenge lagres de?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "AI-02",
+      "title": "Minst mulig personopplysninger i prompter",
+      "kind": "technical",
+      "requirement": "Språkmodellen får bare det oppgaven trenger. Identifikatorer byttes med interne ID-er der det går. Særlige kategorier (helse og lignende) sendes ikke uten dokumentert grunnlag og avtale. Det er skrevet ned hvilke felt som går til modellen, og hvorfor.",
+      "map": {
+        "soc2": [
+          "C1.1",
+          "P4.1"
+        ],
+        "iso27001": [
+          "A.5.34",
+          "A.8.11"
+        ],
+        "gdpr": [
+          "5(1)(c)",
+          "9",
+          "25"
+        ],
+        "hipaa": [
+          "164.502(b)"
+        ]
+      },
+      "triggers": [
+        "ai",
+        "personal-data"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "prompt-fields"
+        },
+        {
+          "type": "hook",
+          "id": "pii-logs",
+          "severity": "warn",
+          "note": "samme feltliste brukt på filer som bygger prompter"
+        }
+      ],
+      "evidence": [
+        "tabell i datakartet: felt → sendes til modell ja/nei → begrunnelse",
+        "leverandøren står i leverandørregisteret (AI-01)"
+      ],
+      "askInSpec": [
+        "Hvilke felt sendes til modellen? Kan noen fjernes eller maskeres?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "AI-03",
+      "title": "Upålitelig innhold er data, aldri instrukser. Modellen virker bare gjennom verktøy serveren kontrollerer",
+      "kind": "technical",
+      "requirement": "Tekst fra brukere, dokumenter, nettsider og leverandører behandles som data, aldri som instrukser til modellen. Modellen kan bare handle gjennom verktøy der serveren kontrollerer inndata, tilgang og kunde. Svar fra modellen valideres før de brukes, og viktige handlinger krever bekreftelse fra systemet, ikke fra modellen.",
+      "map": {
+        "soc2": [
+          "CC6.1",
+          "PI1.2"
+        ],
+        "iso27001": [
+          "A.8.26",
+          "A.8.28"
+        ],
+        "gdpr": [
+          "32"
+        ],
+        "hipaa": [
+          "164.312(c)(1)"
+        ]
+      },
+      "triggers": [
+        "ai",
+        "api"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "prompt-injection"
+        }
+      ],
+      "evidence": [
+        "liste over verktøyene modellen har, med kontroller per verktøy",
+        "test der inndata prøver å gi modellen nye instrukser"
+      ],
+      "askInSpec": [
+        "Hvilke verktøy får modellen? Hva hindrer den i å gjøre noe for feil kunde?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "AI-04",
+      "title": "Åpenhet om at det er AI, og vei til et menneske",
+      "kind": "technical",
+      "requirement": "Brukeren får vite at hen snakker med eller får svar fra AI. Det finnes alltid en vei til et menneske. Tar AI-en avgjørelser med rettslig eller tilsvarende betydning for en person, har personen rett til menneskelig vurdering.",
+      "map": {
+        "soc2": [
+          "P1.1"
+        ],
+        "iso27001": [
+          "A.5.34"
+        ],
+        "gdpr": [
+          "13(2)(f)",
+          "22"
+        ]
+      },
+      "triggers": [
+        "ai"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "ai-disclosure"
+        }
+      ],
+      "evidence": [
+        "tekst eller replikk som sier at det er AI",
+        "flyt for overføring til menneske"
+      ],
+      "askInSpec": [
+        "Hvor får brukeren vite at det er AI? Hvordan når hen et menneske?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "AI-05",
+      "title": "Prompter og svar følger lagringstid og tilgangsregler",
+      "kind": "technical",
+      "requirement": "Lagrede prompter, svar, transkripsjoner og innebygginger (embeddings) behandles som personopplysninger. De har lagringstid, følger kundeskillet og tilgangsreglene, og slettes når personen slettes.",
+      "map": {
+        "soc2": [
+          "C1.2",
+          "P4.2"
+        ],
+        "iso27001": [
+          "A.8.10",
+          "A.8.15"
+        ],
+        "gdpr": [
+          "5(1)(e)",
+          "32"
+        ],
+        "hipaa": [
+          "164.312(b)"
+        ]
+      },
+      "triggers": [
+        "ai",
+        "logging",
+        "db-schema"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "ai-retention"
+        }
+      ],
+      "evidence": [
+        "lagringstid for prompter og svar i datakartet",
+        "RLS eller tilgangsregel på tabellen",
+        "sletting omfatter AI-data (PR-05)"
+      ],
+      "askInSpec": [
+        "Lagres prompter, svar eller transkripsjoner? Hvor lenge, og hvem ser dem?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "ORG-01",
+      "title": "Kort policy for sikkerhet og personvern, eid og datert",
+      "kind": "organisational",
+      "requirement": "Det finnes en kort policy for sikkerhet og personvern: hva som skal beskyttes, de viktigste reglene, og hvem som eier den. Den er datert og gjennomgås minst én gang i året.",
+      "map": {
+        "soc2": [
+          "CC5.3"
+        ],
+        "iso27001": [
+          "A.5.1"
+        ],
+        "gdpr": [
+          "24(2)"
+        ],
+        "hipaa": [
+          "164.316(a)"
+        ]
+      },
+      "triggers": [
+        "periodic",
+        "infra"
+      ],
+      "checks": [
+        {
+          "type": "owner",
+          "id": "policy",
+          "remindEvery": "P12M"
+        }
+      ],
+      "evidence": [
+        "policydokument med eier og dato"
+      ],
+      "askInSpec": [],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "ORG-02",
+      "title": "Risikovurdering og risikoregister, gjennomgått minst årlig",
+      "kind": "organisational",
+      "requirement": "Det finnes et risikoregister: hva som kan gå galt, hvor sannsynlig og alvorlig det er, hvilke kontroller som demper det, hvem som eier risikoen og hva som skal gjøres. Det gjennomgås minst én gang i året, og når noe stort endres, som en ny leverandør eller AI.",
+      "map": {
+        "soc2": [
+          "CC3.1",
+          "CC3.2",
+          "CC3.3",
+          "CC3.4"
+        ],
+        "iso27001": [
+          "6.1.2",
+          "8.2"
+        ],
+        "gdpr": [
+          "32(2)",
+          "35"
+        ],
+        "hipaa": [
+          "164.308(a)(1)(ii)(A)",
+          "164.308(a)(1)(ii)(B)"
+        ]
+      },
+      "triggers": [
+        "periodic",
+        "third-party",
+        "ai"
+      ],
+      "checks": [
+        {
+          "type": "agent",
+          "id": "risk-register"
+        },
+        {
+          "type": "owner",
+          "id": "risk-review",
+          "remindEvery": "P12M"
+        }
+      ],
+      "evidence": [
+        "compliance/risks.json eller dokumentet profilen peker på, med dato for siste gjennomgang"
+      ],
+      "askInSpec": [
+        "Gir funksjonen en ny risiko som bør stå i registeret?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "ORG-03",
+      "title": "Roller og ansvar, også hvem som er behandlingsansvarlig",
+      "kind": "organisational",
+      "requirement": "Det står hvem som har ansvar for sikkerhet, personvern, tilganger og hendelser. Det står også hvem som er behandlingsansvarlig og hvem som er databehandler for hver behandling, for eksempel bedriften for egne brukere og kunden for sluttkundene.",
+      "map": {
+        "soc2": [
+          "CC1.3"
+        ],
+        "iso27001": [
+          "A.5.2"
+        ],
+        "gdpr": [
+          "24",
+          "28"
+        ],
+        "hipaa": [
+          "164.308(a)(2)"
+        ]
+      },
+      "triggers": [
+        "periodic",
+        "third-party"
+      ],
+      "checks": [
+        {
+          "type": "owner",
+          "id": "roles",
+          "remindEvery": "P12M"
+        }
+      ],
+      "evidence": [
+        "dokument med roller og ansvar",
+        "rollen (behandlingsansvarlig eller databehandler) i profilen og datakartet"
+      ],
+      "askInSpec": [],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "ORG-04",
+      "title": "Årlig gjennomgang av kontroller, tilganger og eiendeler",
+      "kind": "organisational",
+      "requirement": "Minst én gang i året gås kontrollene gjennom: status, bevis og gap. Tilganger til systemer og leverandørkontoer kontrolleres, og de som ikke trengs lenger, fjernes. Oversikten over systemer og data oppdateres.",
+      "map": {
+        "soc2": [
+          "CC4.1",
+          "CC4.2"
+        ],
+        "iso27001": [
+          "A.5.18",
+          "A.5.35",
+          "A.5.36"
+        ],
+        "gdpr": [
+          "24(1)",
+          "32(1)(d)"
+        ],
+        "hipaa": [
+          "164.308(a)(8)"
+        ]
+      },
+      "triggers": [
+        "periodic",
+        "auth"
+      ],
+      "checks": [
+        {
+          "type": "owner",
+          "id": "annual-review",
+          "remindEvery": "P12M"
+        }
+      ],
+      "evidence": [
+        "notat fra gjennomgangen med dato",
+        "liste over tilganger som ble fjernet"
+      ],
+      "askInSpec": [],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "ORG-05",
+      "title": "Taushetsplikt og opplæring for alle med tilgang",
+      "kind": "organisational",
+      "requirement": "Alle som får tilgang til persondata eller produksjon, har skrevet under på taushetsplikt og fått en kort opplæring i sikkerhet og personvern. Opplæringen gjentas jevnlig.",
+      "map": {
+        "soc2": [
+          "CC1.4",
+          "CC2.2"
+        ],
+        "iso27001": [
+          "A.6.3",
+          "A.6.6"
+        ],
+        "gdpr": [
+          "28(3)(b)",
+          "32(4)"
+        ],
+        "hipaa": [
+          "164.308(a)(5)"
+        ]
+      },
+      "triggers": [
+        "periodic",
+        "auth"
+      ],
+      "checks": [
+        {
+          "type": "owner",
+          "id": "confidentiality-training",
+          "remindEvery": "P12M"
+        }
+      ],
+      "evidence": [
+        "liste over hvem som har signert taushetsplikt",
+        "dato for siste opplæring"
+      ],
+      "askInSpec": [],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "HX-01",
+      "title": "Kart over PHI og regelen om «minimum necessary»",
+      "kind": "technical",
+      "requirement": "Datakartet merker hvilke felt som er beskyttede helseopplysninger (PHI) etter HIPAA. Bruk og utlevering av PHI begrenses til det minste som trengs for oppgaven, også internt, i logger og til språkmodeller. Rollene som ser PHI, er listet.",
+      "map": {
+        "hipaa": [
+          "164.502(b)",
+          "164.514(d)"
+        ]
+      },
+      "triggers": [
+        "personal-data",
+        "db-schema",
+        "ai",
+        "logging"
+      ],
+      "appliesWhen": {
+        "framework": "hipaa"
+      },
+      "checks": [
+        {
+          "type": "agent",
+          "id": "phi-map"
+        }
+      ],
+      "evidence": [
+        "PHI-felt merket i datakartet",
+        "liste over roller med tilgang til PHI"
+      ],
+      "askInSpec": [
+        "Inneholder funksjonen PHI? Hvem trenger å se den, og hva er det minste som trengs?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "HX-02",
+      "title": "Business Associate Agreement med alle som berører PHI",
+      "kind": "organisational",
+      "requirement": "Hver leverandør som lagrer, behandler eller overfører PHI for prosjektet, har signert en Business Associate Agreement (BAA) før de første ekte dataene sendes. Det gjelder også drift, e-post, SMS og AI-leverandører.",
+      "map": {
+        "hipaa": [
+          "164.308(b)(1)",
+          "164.314(a)",
+          "164.502(e)"
+        ]
+      },
+      "triggers": [
+        "third-party",
+        "ai"
+      ],
+      "appliesWhen": {
+        "framework": "hipaa"
+      },
+      "checks": [
+        {
+          "type": "owner",
+          "id": "baa-signed"
+        }
+      ],
+      "evidence": [
+        "peker til signert BAA per leverandør i leverandørregisteret"
+      ],
+      "askInSpec": [
+        "Berører den nye leverandøren PHI? Finnes det signert BAA?"
+      ],
+      "mappingStatus": "draft"
+    },
+    {
+      "id": "HX-03",
+      "title": "Automatisk utlogging og nødtilgang",
+      "kind": "technical",
+      "requirement": "Økter med tilgang til PHI logges ut automatisk etter en fast tid uten aktivitet. Det finnes en skrevet og testet prosedyre for nødtilgang til PHI, og hver bruk av den logges.",
+      "map": {
+        "hipaa": [
+          "164.312(a)(2)(ii)",
+          "164.312(a)(2)(iii)"
+        ]
+      },
+      "triggers": [
+        "auth",
+        "ui"
+      ],
+      "appliesWhen": {
+        "framework": "hipaa"
+      },
+      "checks": [
+        {
+          "type": "agent",
+          "id": "auto-logoff"
+        },
+        {
+          "type": "owner",
+          "id": "emergency-access"
+        }
+      ],
+      "evidence": [
+        "innstilling for automatisk utlogging",
+        "prosedyre for nødtilgang med dato",
+        "logg over bruk av nødtilgang"
+      ],
+      "askInSpec": [
+        "Hvor lang tid før en inaktiv økt med PHI logges ut?"
+      ],
+      "mappingStatus": "draft"
+    }
+  ]
+}
