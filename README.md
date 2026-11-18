@@ -2,7 +2,7 @@
 
 A Claude Code plugin that builds security, privacy and quality requirements into every piece of work, instead of leaving them to memory.
 
-> **Status: preview 0.** The design is approved. Only the plugin shell and the hook probes from phase 0 exist. Nothing here enforces anything yet.
+> **Status: early preview (3.0.0-preview.0).** "Preview" means a version that is not ready for daily use yet, and "0" means the first one. What exists today: the approved design, the plugin shell, and phase 0, which proved on Windows that every hook type works (see [phase 0 results](specs/000-design/fase-0.md), Norwegian). What does not exist yet: the hooks that route, guard and block. They arrive in phase 1. Until then, installing forge changes nothing in your sessions.
 
 ## What it will do
 
@@ -32,6 +32,10 @@ The full design is in [specs/000-design/spec.md](specs/000-design/spec.md) (Norw
 ## Looking for project-init v2?
 
 forge replaces [Thugney/project-init](https://github.com/Thugney/project-init). v2 stays available at the `v2-final` tag in that repository.
+
+## Author
+
+Built and maintained by Eriteach. [LinkedIn](https://www.linkedin.com/in/eriteach)
 
 ## License
 

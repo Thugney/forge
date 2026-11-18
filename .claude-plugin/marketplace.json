@@ -2,7 +2,8 @@
   "name": "thugney",
   "description": "Thugney sine Claude Code-plugins.",
   "owner": {
-    "name": "Thugney"
+    "name": "Thugney",
+    "url": "https://www.linkedin.com/in/eriteach"
   },
   "plugins": [
     {
