@@ -1,0 +1,14 @@
+{
+  "name": "thugney",
+  "description": "Thugney sine Claude Code-plugins.",
+  "owner": {
+    "name": "Thugney"
+  },
+  "plugins": [
+    {
+      "name": "forge",
+      "source": "./plugins/forge",
+      "description": "Krav til sikkerhet, personvern og kvalitet bygget inn i alt arbeid: ruting, oppstartssjekk, vakter og bevis."
+    }
+  ]
+}

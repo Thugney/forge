@@ -1,0 +1,36 @@
+{
+  "description": "Fase 0: prøvehooks. De gjør ingenting med mindre FORGE_PROBE=1 er satt.",
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [ { "type": "command", "command": "node",
+          "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/probe.mjs", "SessionStart"], "timeout": 5 } ] }
+    ],
+    "UserPromptSubmit": [
+      { "hooks": [ { "type": "command", "command": "node",
+          "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/probe.mjs", "UserPromptSubmit"], "timeout": 5 } ] }
+    ],
+    "PreToolUse": [
+      { "matcher": "Bash|PowerShell",
+        "hooks": [
+          { "type": "command", "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/probe.mjs", "PreToolUse"], "timeout": 5 },
+          { "type": "command", "if": "Bash(git *)", "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/probe.mjs", "PreToolUse-if-bash-git"], "timeout": 5 },
+          { "type": "command", "if": "PowerShell(git *)", "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/probe.mjs", "PreToolUse-if-ps-git"], "timeout": 5 }
+        ] },
+      { "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [ { "type": "command", "command": "node",
+          "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/probe.mjs", "PreToolUse-write"], "timeout": 5 } ] }
+    ],
+    "PostToolUse": [
+      { "matcher": "Skill",
+        "hooks": [ { "type": "command", "command": "node",
+          "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/probe.mjs", "PostToolUse-Skill"], "timeout": 5 } ] }
+    ],
+    "Stop": [
+      { "hooks": [ { "type": "command", "command": "node",
+          "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/probe.mjs", "Stop"], "timeout": 15 } ] }
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "forge",
+  "version": "3.0.0-preview.0",
+  "description": "Krav til sikkerhet, personvern og kvalitet bygget inn i alt arbeid: ruting, oppstartssjekk, vakter og bevis.",
+  "author": { "name": "Thugney" },
+  "homepage": "https://github.com/Thugney/forge",
+  "repository": "https://github.com/Thugney/forge",
+  "license": "Apache-2.0"
+}
