@@ -2,7 +2,7 @@
 
 A Claude Code plugin that builds security, privacy and quality requirements into every piece of work, instead of leaving them to memory.
 
-> **Status: early preview (3.0.0-preview.0).** "Preview" means a version that is not ready for daily use yet, and "0" means the first one. What exists today: the approved design, the plugin shell, and phase 0, which proved on Windows that every hook type works (see [phase 0 results](specs/000-design/fase-0.md), Norwegian). What does not exist yet: the hooks that route, guard and block. They arrive in phase 1. Until then, installing forge changes nothing in your sessions.
+> **Status: early preview (3.0.0-preview.1).** "Preview" means a version that is not ready for daily use yet. What works today, only in projects you enroll with `/forge:enroll`: a start-of-session summary, and routing of every prompt to the right skills, controls and model. What does not exist yet: the guards that block (secrets, missing row-level security, code before an approved plan, direct pushes to `main`) and the guided phase loop. They arrive in the next phases. See the [build plan](specs/000-design/spec.md) (Norwegian).
 
 ## What it will do
 

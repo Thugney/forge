@@ -2,8 +2,6 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import os from 'node:os';
-import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -52,23 +50,3 @@ test('workflow actions are pinned to a full commit SHA', () => {
     }
   }
 });
-
-test('probe hook is silent and exits 0 without FORGE_PROBE', () => {
-  const script = path.join(root, 'plugins/forge/scripts/probe.mjs');
-  const env = { ...process.env };
-  delete env.FORGE_PROBE;
-  const r = spawnSync(process.execPath, [script, 'UserPromptSubmit'], { input: '{"prompt":"hei"}', env, encoding: 'utf8' });
-  assert.equal(r.status, 0);
-  assert.equal(r.stdout, '');
-});
-
-test('probe hook fails open on broken JSON', () => {
-  const script = path.join(root, 'plugins/forge/scripts/probe.mjs');
-  const logDir = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-'));
-  const r = spawnSync(process.execPath, [script, 'Stop'], {
-    input: '{not json', encoding: 'utf8',
-    env: { ...process.env, FORGE_PROBE: '1', FORGE_PROBE_LOG_DIR: logDir },
-  });
-  assert.equal(r.status, 0);
-});
-

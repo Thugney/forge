@@ -1,0 +1,58 @@
+{
+  "_comment": "Ordstammer (prefix), eksakte ord (exact) og fraser (phrases), alt i små bokstaver. Justeres her, ikke i koden.",
+  "ui": {
+    "prefix": ["skjema", "knapp", "layout", "design", "komponent", "mobil", "portal", "button", "frontend", "css", "tailwind", "nettside", "landingsside", "dashboard", "modal", "skjerm", "responsiv", "responsive", "stilark", "figma", "typografi", "animasjon", "widget"],
+    "exact": ["ui", "ux", "side", "sider", "form", "forms", "page", "pages", "meny", "menu", "ikon", "icon", "farge", "farger", "color", "colors", "tema", "theme", "navbar", "header", "footer"],
+    "phrases": ["dark mode", "mørk modus"]
+  },
+  "feature": {
+    "prefix": ["funksjon", "feature", "implementer", "implement", "bygg", "build", "utvikl", "develop", "opprett"],
+    "exact": ["add", "lag", "lage", "create", "make", "ny"],
+    "phrases": ["legg til", "sett opp", "sette opp", "set up"]
+  },
+  "personal-data": {
+    "prefix": ["telefon", "e-post", "epost", "adresse", "fødsel", "personnummer", "kunde", "pasient", "email", "phone", "patient", "customer", "personopplysning", "personal", "personvern", "privacy", "gdpr", "samtykke", "consent", "profil", "kontaktinfo", "helseopplysning", "ansatt", "employee"],
+    "exact": ["navn", "name", "bruker", "brukere", "brukeren", "brukerne", "user", "users", "pii", "address"],
+    "phrases": ["slett konto", "delete account"]
+  },
+  "db-schema": {
+    "prefix": ["tabell", "kolonne", "migrasjon", "migration", "column", "database", "postgres", "sql", "rls", "indeks", "schema"],
+    "exact": ["table", "tables", "db", "index"],
+    "phrases": ["row level"]
+  },
+  "api": {
+    "prefix": ["api", "endepunkt", "endpoint", "rest", "graphql", "webhook", "openapi", "swagger"],
+    "exact": ["http", "trpc", "route", "routes", "rute", "ruter", "cors"],
+    "phrases": []
+  },
+  "auth": {
+    "prefix": ["innlogging", "passord", "token", "rolle", "tilgang", "login", "session", "sesjon", "autentis", "authenti", "autoris", "authoriz", "oauth", "oidc", "sso", "jwt", "mfa", "2fa", "permission", "tillatelse", "cookie", "informasjonskapsel", "password", "keycloak"],
+    "exact": ["roller", "roles", "role", "auth", "admin", "rbac", "logout", "utlogging"],
+    "phrases": ["logg inn", "logg ut", "sign in", "sign up", "sign out"]
+  },
+  "logging": {
+    "prefix": ["logging", "logger", "audit", "revisjonsspor", "telemetri", "telemetry", "sentry", "overvåk", "monitor", "tracing"],
+    "exact": ["logg", "loggen", "loggene", "log", "logs", "trace", "metrics", "metrikk", "metrikker"],
+    "phrases": ["feilrapport", "error report"]
+  },
+  "third-party": {
+    "prefix": ["leverandør", "sdk", "integrasjon", "integration", "analytics", "vendor", "tredjepart", "third-party", "stripe", "twilio", "sendgrid", "mailchimp", "slack", "paypal", "vipps", "betalingsløsning", "payment", "sms", "captcha"],
+    "exact": ["integrer", "integrate", "integrere", "cdn"],
+    "phrases": ["third party", "koble til", "connect to", "ekstern tjeneste", "external service"]
+  },
+  "ai": {
+    "prefix": ["modell", "prompt", "llm", "agent", "transkripsjon", "transcri", "embedding", "claude", "gpt", "openai", "anthropic", "chatbot", "maskinlæring", "gemini", "språkmodell"],
+    "exact": ["ai", "ki", "model", "models", "modeller", "rag", "finetune", "fine-tune"],
+    "phrases": ["kunstig intelligens", "artificial intelligence", "machine learning", "language model"]
+  },
+  "deps": {
+    "prefix": ["avhengighet", "dependenc", "npm", "pip", "yarn", "pnpm", "bibliotek", "library", "package", "pakke", "lockfile", "oppgrader", "upgrade", "cargo", "composer", "nuget", "gradle", "maven", "dependabot"],
+    "exact": ["deps", "install", "installer", "bump", "lib", "libs"],
+    "phrases": ["package.json"]
+  },
+  "infra": {
+    "prefix": ["deploy", "docker", "kubernetes", "terraform", "pipeline", "utrulling", "hosting", "nginx", "workflow", "produksjon", "production", "backup", "sikkerhetskopi", "domene", "domain", "sertifikat", "certificate", "firewall", "brannmur", "vercel", "cloudflare", "aws", "azure", "hemmelighet"],
+    "exact": ["ci", "cd", "ci/cd", "k8s", "vps", "iac", "cloud", "infra", "helm", "dns", "tls", "ssl", "server", "env", "secret", "secrets"],
+    "phrases": ["rull ut", "gå i produksjon", "go live", "docker compose", "github actions"]
+  }
+}
